@@ -64,26 +64,29 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Subtítulo de Benefício */}
-          <div className="max-w-2xl mx-auto space-y-1">
+          {/* Mensagem de Boas-Vindas Atualizada */}
+          <div className="max-w-2xl mx-auto space-y-4">
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
+              Bem-vinda à sua nova realidade, Criadora! 💚
+            </h2>
             <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-              Emagrecimento leve que começa na sua mente.
-            </p>
-            <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-              Reprograme seus pensamentos e crie o corpo que sua mente já assumiu.
+              Aqui, o corpo que você deseja já é seu. Estamos apenas alinhando a sua mente para que a sua realidade física se manifeste. Respire fundo, escolha sua prática de hoje e sinta a transformação acontecer de dentro para fora.
             </p>
           </div>
 
-          {/* Saudação */}
-          <div className="pt-2 space-y-2">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
-              Olá, Criadora! 💚
-            </h2>
-            <p className="text-gray-600 text-lg">Como você está se sentindo hoje?</p>
+          {/* Botão Descobrir Meu Perfil */}
+          <div className="pt-4">
+            <button
+              onClick={() => router.push('/quiz')}
+              className="bg-gradient-to-r from-green-400 to-teal-400 hover:from-green-500 hover:to-teal-500 text-white font-semibold text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out flex items-center gap-2 mx-auto"
+            >
+              <Sparkles className="w-5 h-5" />
+              Descobrir Meu Perfil
+            </button>
           </div>
 
           {/* Botão CTA - Começar Jornada */}
-          <div className="pt-4">
+          <div className="pt-2">
             <button
               onClick={() => router.push('/auth')}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold text-lg px-8 py-4 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 ease-in-out"
@@ -126,6 +129,7 @@ export default function Home() {
 
         {/* Seletor de Humor */}
         <div className="bg-white rounded-3xl shadow-xl p-6 border border-purple-100">
+          <p className="text-gray-600 text-lg mb-4 text-center">Como você está se sentindo hoje?</p>
           <MoodSelector onMoodSelect={setSelectedMood} selectedMood={selectedMood} />
         </div>
 
