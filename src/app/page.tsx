@@ -1,4 +1,6 @@
 
+ 
+  
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -26,11 +28,12 @@ export default async function Home() {
       <p className="text-gray-600 mb-8 max-w-sm text-lg">
         Sua nova realidade começa aqui. Faça login para acessar seu portal exclusivo.
       </p>
-      <a href="/auth" className="bg-purple-600 text-white font-bold py-4 px-12 rounded-2xl shadow-xl hover:bg-purple-700 transition-all">
+      <a
+        href="/auth"
+        className="bg-purple-600 text-white font-bold py-4 px-12 rounded-2xl shadow-xl hover:bg-purple-700 transition-all"
+      >
         ENTRAR NO APP
       </a>
     </div>
   )
 }
- 
-  
