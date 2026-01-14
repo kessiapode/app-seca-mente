@@ -1,10 +1,5 @@
 import './globals.css'
 
-export const metadata = {
-  title: 'Seca Mente',
-  description: 'Sua jornada de transformação',
-}
-
 export default function RootLayout({
   children,
 }: {
