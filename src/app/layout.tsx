@@ -1,31 +1,18 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import Script from "next/script";
-import "./globals.css";
+import './globals.css'
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-export const metadata: Metadata = {
-  title: "SecaMente - Emagrecimento pela Mente",
-  description: "Emagrecimento leve que começa na sua mente. Reprograme seus hábitos.",
-};
+export const metadata = {
+  title: 'Seca Mente',
+  description: 'Sua jornada de transformação',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="pt-BR">
-      <head>
-        <Script src="/lasy-bridge.js" />
-      </head>
-      <body className={`${inter.variable} antialiased`}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  );
+  )
 }
