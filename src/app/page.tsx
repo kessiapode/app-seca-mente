@@ -1,5 +1,5 @@
 
- 'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -11,21 +11,19 @@ export default function Home() {
 
   useEffect(() => {
     const checkUser = async () => {
-      // Verifica se existe uma sessão ativa no navegador
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // Se estiver logado, vai direto para as meditações
-        router.push('/meditacoes');
+        // Se já está logada, vai direto para o conteúdo VIP
+        router.replace('/meditacoes');
       } else {
-        // Se não estiver, para de carregar e mostra a tela de entrada
+        // Se não está, mostra a tela de entrada
         setLoading(false);
       }
     };
     checkUser();
   }, [router]);
 
-  // Tela de carregamento enquanto o app decide se você está logada
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -34,7 +32,6 @@ export default function Home() {
     );
   }
 
-  // Tela de Bloqueio (Só aparece se NÃO estiver logada)
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6 text-center">
       <h1 className="text-4xl font-bold text-purple-600 mb-4">Seca Mente ✨</h1>
@@ -50,4 +47,3 @@ export default function Home() {
     </div>
   );
 }
-  
