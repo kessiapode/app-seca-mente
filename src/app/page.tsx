@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,24 +9,40 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // Se já está logada, vai direto para o conteúdo VIP
-        router.replace('/meditacoes');
-      } else {
-        // Se não está, mostra a tela de entrada
-        setLoading(false);
+      // Tenta verificar a sessão 6 vezes com pequenos intervalos
+      for (let attempt = 0; attempt < 6; attempt++) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          console.log('[Home] Tentativa', attempt, 'Sessão encontrada:', !!session);
+          
+          if (session) {
+            // Se achou o login, vai para as meditações
+            router.replace('/meditacoes');
+            return;
+          }
+        } catch (err) {
+          console.error('[Home] Erro ao buscar sessão:', err);
+        }
+        // Espera um pouco antes de tentar de novo
+        await wait(300 + attempt * 100);
       }
+      // Se após 6 tentativas não achar nada, mostra a tela de entrada
+      setLoading(false);
     };
+
     checkUser();
   }, [router]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+          <p className="text-purple-600 font-medium">Verificando acesso...</p>
+        </div>
       </div>
     );
   }
