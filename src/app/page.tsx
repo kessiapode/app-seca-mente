@@ -1,6 +1,6 @@
 
 
- import { createServerClient } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -15,24 +15,12 @@ export default async function Home() {
   // 1. Verifica o usuário
   const { data: { user } } = await supabase.auth.getUser()
 
-  // 2. Se estiver logado, vamos decidir para onde ele vai
+  // 2. Se estiver logado, manda para a pasta que vimos no seu print
   if (user) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_vip')
-      .eq('id', user.id)
-      .single()
-
-    // Se for VIP, vai para as meditações (ou perfil)
-    if (profile?.is_vip) {
-      redirect('/meditacoes')
-    } else {
-      // Se logou mas não é VIP, manda para a página que explica o VIP ou perfil
-      redirect('/meditacoes') // Vou mandar para meditações para você ver o paywall funcionando
-    }
+    redirect('/meditacoes')
   }
 
-  // 3. SE NÃO ESTIVER LOGADO: Tela de bloqueio
+  // 3. Se não estiver logado, mostra a tela de bloqueio
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6 text-center">
       <h1 className="text-4xl font-bold text-purple-600 mb-4">Seca Mente ✨</h1>
@@ -44,4 +32,5 @@ export default async function Home() {
       </a>
     </div>
   )
-}
+}    
+  
