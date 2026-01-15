@@ -1,20 +1,36 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
+'use client';
 
-export default async function MeditacoesPage() {
-  const cookieStore = cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get(name: string) { return cookieStore.get(name)?.value } } }
-  )
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
-  const { data: { user } } = await supabase.auth.getUser()
+export default function MeditacoesPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
-  // Se não estiver logado, manda para o login (Acaba com a tela rosa!)
-  if (!user) {
-    redirect('/auth')
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // Se não estiver logado, manda para o login
+        router.replace('/auth');
+      } else {
+        setUser(session.user);
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-purple-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+      </div>
+    );
   }
 
   return (
@@ -22,7 +38,12 @@ export default async function MeditacoesPage() {
       <div className="max-w-md mx-auto">
         <header className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold text-purple-800">Minhas Afirmações ✨</h1>
-          <a href="/" className="text-sm text-purple-600 font-medium">← Voltar</a>
+          <button 
+            onClick={() => router.push('/')}
+            className="text-sm text-purple-600 font-medium hover:text-purple-800"
+          >
+            ← Voltar
+          </button>
         </header>
 
         <div className="space-y-4">
@@ -41,5 +62,5 @@ export default async function MeditacoesPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
