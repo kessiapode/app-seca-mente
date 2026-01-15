@@ -1,223 +1,141 @@
 'use client';
 
+import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Logo from '@/components/custom/logo';
 
 export default function AuthPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [message, setMessage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    // Verificar se usuário já está logado
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.push('/');
+  const handleAuth = async () => {
+    setLoading(true);
+    setMessage('');
+
+    try {
+      if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setMessage('✅ Conta criada! Verifique seu e-mail para confirmar.');
       } else {
-        setLoading(false);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+
+        // Verifica se é VIP
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_vip')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile?.is_vip) {
+          router.push('/dashboard'); // VIP vai pro painel
+        } else {
+          router.push('/checkout'); // Não VIP vai pro checkout
+        }
       }
-    });
-
-    // Escutar mudanças de autenticação
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        router.push('/');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router]);
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setSubmitting(true);
-
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      setMessage('Conta criada! Verifique seu email para confirmar o cadastro.');
-      setEmail('');
-      setPassword('');
     } catch (error: any) {
-      setError(error.message || 'Erro ao criar conta');
+      setMessage('❌ ' + error.message);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
-    setSubmitting(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      // Redirecionamento será feito pelo onAuthStateChange
-    } catch (error: any) {
-      setError(error.message || 'Erro ao entrar');
-    } finally {
-      setSubmitting(false);
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage('⚠️ Digite seu e-mail primeiro.');
+      return;
     }
-  };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-green-50 flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="w-32 h-32">
-            <Logo />
-          </div>
-        </div>
-      </div>
-    );
-  }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+
+    if (error) {
+      setMessage('❌ ' + error.message);
+    } else {
+      setMessage('✅ E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+    }
+    setLoading(false);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-green-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        {/* Logo e Título */}
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="w-32 h-32">
-              <Logo />
-            </div>
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex flex-col items-center justify-center p-6">
+      <div className="bg-white p-8 rounded-3xl shadow-xl border border-purple-100 w-full max-w-md">
+        <h1 className="text-3xl font-bold text-purple-900 text-center mb-2">
+          {mode === 'login' ? 'Bem-vinda de volta! ✨' : 'Criar Conta 💎'}
+        </h1>
+        <p className="text-purple-600 text-sm text-center mb-8">
+          {mode === 'login' ? 'Entre para acessar seu conteúdo' : 'Comece sua transformação hoje'}
+        </p>
+
+        {message && (
+          <div className="mb-4 p-4 rounded-xl bg-purple-50 text-purple-800 text-sm text-center">
+            {message}
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">SecaMente</h1>
-            <p className="text-gray-600 mt-2">
-              Emagrecimento leve que começa na sua mente
-            </p>
-          </div>
-        </div>
+        )}
 
-        {/* Card de Autenticação */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 border border-purple-100">
-          <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
-            {/* Campo de Email */}
-            <div>
-              <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                required
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              />
-            </div>
+        <input
+          type="email"
+          placeholder="Seu melhor e-mail"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-4 rounded-xl border border-purple-200 mb-4 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        />
 
-            {/* Campo de Senha */}
-            <div>
-              <label htmlFor="password" className="block text-gray-700 font-medium mb-2">
-                Senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={isSignUp ? 'Crie uma senha' : 'Sua senha'}
-                required
-                minLength={6}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              />
-            </div>
+        <input
+          type="password"
+          placeholder="Senha"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-4 rounded-xl border border-purple-200 mb-6 focus:outline-none focus:ring-2 focus:ring-purple-400"
+        />
 
-            {/* Mensagens de Erro e Sucesso */}
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-                {error}
-              </div>
-            )}
-            {message && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm">
-                {message}
-              </div>
-            )}
+        <button
+          onClick={handleAuth}
+          disabled={loading}
+          className="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-purple-700 transition-all disabled:opacity-50 mb-4"
+        >
+          {loading ? '⏳ Aguarde...' : mode === 'login' ? 'ENTRAR' : 'CRIAR CONTA'}
+        </button>
 
-            {/* Botões de Ação */}
-            <div className="space-y-3 pt-2">
-              {isSignUp ? (
-                <>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submitting ? 'Criando conta...' : 'Criar conta'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSignUp(false);
-                      setError('');
-                      setMessage('');
-                    }}
-                    className="w-full text-purple-600 font-medium py-2 hover:text-purple-700 transition-colors duration-200"
-                  >
-                    Já tem uma conta? Entre
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submitting ? 'Entrando...' : 'Entrar'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsSignUp(true);
-                      setError('');
-                      setMessage('');
-                    }}
-                    className="w-full text-purple-600 font-medium py-2 hover:text-purple-700 transition-colors duration-200"
-                  >
-                    Não tem uma conta? Cadastre-se
-                  </button>
-                </>
-              )}
-            </div>
-          </form>
-        </div>
+        {mode === 'login' && (
+          <button
+            onClick={handleForgotPassword}
+            disabled={loading}
+            className="w-full text-purple-400 text-sm underline mb-4 hover:text-purple-600 transition-all"
+          >
+            Esqueci minha senha
+          </button>
+        )}
 
-        {/* Mensagem de Boas-vindas */}
-        <div className="text-center text-sm text-gray-600">
-          <p>
-            Ao criar uma conta, você concorda com nossos{' '}
-            <span className="text-purple-600 font-medium">Termos de Uso</span> e{' '}
-            <span className="text-purple-600 font-medium">Política de Privacidade</span>
-          </p>
-        </div>
+        <button
+          onClick={() => {
+            setMode(mode === 'login' ? 'signup' : 'login');
+            setMessage('');
+          }}
+          className="w-full text-purple-500 text-sm hover:text-purple-700 transition-all"
+        >
+          {mode === 'login' ? 'Não tem conta? Criar agora →' : '← Já tem conta? Entrar'}
+        </button>
+
+        <button
+          onClick={() => router.push('/')}
+          className="w-full text-gray-400 text-xs mt-6 hover:text-gray-600 transition-all"
+        >
+          ← Voltar para o início
+        </button>
       </div>
     </div>
   );
