@@ -28,7 +28,7 @@ export default function MeditacoesPage() {
         return;
       }
 
-      // Buscar meditações do Supabase
+      // Busca as meditações da tabela 'meditacoes'
       const { data, error } = await supabase
         .from('meditacoes')
         .select('*')
@@ -73,14 +73,14 @@ export default function MeditacoesPage() {
         {/* Lista de Meditações */}
         <div className="grid gap-6 md:grid-cols-3">
           {meditacoes.length === 0 ? (
-            <div className="col-span-3 bg-white rounded-3xl shadow-lg p-8 text-center">
-              <p className="text-gray-600">Nenhuma meditação encontrada ainda.</p>
+            <div className="col-span-3 bg-white rounded-3xl shadow-lg p-8 text-center border border-purple-100">
+              <p className="text-gray-600">Nenhuma meditação encontrada no banco de dados.</p>
             </div>
           ) : (
             meditacoes.map((med) => (
               <div
                 key={med.id}
-                className="bg-white rounded-3xl shadow-lg p-6 border border-purple-100 space-y-4"
+                className="bg-white rounded-3xl shadow-lg p-6 border border-purple-100 flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -92,11 +92,13 @@ export default function MeditacoesPage() {
                   <p className="text-sm text-gray-600 leading-relaxed">{med.descricao}</p>
                 </div>
 
-                {/* Player de Áudio /}
-                <audio controls className="w-full">
-                  <source src={med.audio_url} type="audio/mpeg" />
-                  Seu navegador não suporta áudio.
-                </audio>
+                {/* Player de Áudio */}
+                <div className="pt-2">
+                  <audio controls className="w-full">
+                    <source src={med.audio_url} type="audio/mpeg" />
+                    Seu navegador não suporta áudio.
+                  </audio>
+                </div>
               </div>
             ))
           )}
