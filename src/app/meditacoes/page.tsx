@@ -3,21 +3,45 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import Navigation from '@/components/custom/navigation';
+import BackToHomeButton from '@/components/custom/back-to-home-button';
+import { Headphones } from 'lucide-react';
+
+interface Meditacao {
+  id: string;
+  titulo: string;
+  descricao: string;
+  duracao: string;
+  audio_url: string;
+}
 
 export default function MeditacoesPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [meditacoes, setMeditacoes] = useState<Meditacao[]>([]);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.replace('/auth');
-      } else {
-        setLoading(false);
+        return;
       }
+
+      // Buscar meditações do Supabase
+      const { data, error } = await supabase
+        .from('meditacoes')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && data) {
+        setMeditacoes(data);
+      }
+
+      setLoading(false);
     };
-    checkAuth();
+
+    fetchData();
   }, [router]);
 
   if (loading) {
@@ -28,80 +52,54 @@ export default function MeditacoesPage() {
     );
   }
 
-  const afirmacoes = [
-    {
-      titulo: "Afirmação da Manhã",
-      descricao: "Eu já sou a mulher magra e confiante que desejo ser.",
-      duracao: "2 min",
-      audio: "https://exemplo.com/afirmacao-manha.mp3"
-    },
-    {
-      titulo: "Pausa Consciente",
-      descricao: "Antes de comer: estou com fome ou com emoção?",
-      duracao: "5 min",
-      audio: "https://exemplo.com/pausa-consciente.mp3"
-    },
-    {
-      titulo: "Momento de Gratidão",
-      descricao: "Agradeça ao seu corpo por algo que ele faz por você hoje.",
-      duracao: "3 min",
-      audio: "https://exemplo.com/gratidao.mp3"
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 font-sans">
-      {/* HEADER COM NAVEGAÇÃO */}
-      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-md mx-auto flex items-center p-4 gap-4">
-          <button 
-            onClick={() => router.push('/dashboard')} 
-            className="text-purple-600 text-3xl font-bold"
-          >
-            ←
-          </button>
-          
-          <div className="flex gap-6 overflow-x-auto no-scrollbar py-1 flex-1">
-            <button onClick={() => router.push('/dashboard')} className="flex flex-col items-center text-gray-400 min-w-[60px]">
-              <span className="text-2xl">🏠</span>
-              <span className="text-[11px] font-bold uppercase">Início</span>
-            </button>
-            <button onClick={() => router.push('/meditacoes')} className="flex flex-col items-center text-purple-600 min-w-[60px]">
-              <span className="text-2xl">🎧</span>
-              <span className="text-[11px] font-black uppercase">Áudios</span>
-            </button>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-green-50 pb-24 md:pb-8 md:pt-20">
+      <Navigation />
+
+      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+        <BackToHomeButton />
+
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="flex items-center justify-center gap-3">
+            <Headphones className="w-10 h-10 text-purple-600" />
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Meditações Guiadas</h1>
           </div>
+          <p className="text-gray-600">
+            Ouça diariamente para reprogramar sua mente e assumir sua nova identidade.
+          </p>
         </div>
-      </nav>
 
-      <main className="max-w-md mx-auto p-6 space-y-6">
-        <h2 className="text-3xl font-black text-purple-900">
-          Áudios de Afirmação 🎧
-        </h2>
-        
-        <p className="text-lg text-gray-600 font-medium">
-          Ouça diariamente para reprogramar sua mente e assumir sua nova identidade.
-        </p>
-
-        {/* LISTA DE ÁUDIOS */}
-        <div className="space-y-4">
-          {afirmacoes.map((item, index) => (
-            <div key={index} className="bg-white p-6 rounded-3xl shadow-sm border border-purple-100">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xl font-bold text-purple-900">{item.titulo}</h3>
-                <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold">
-                  {item.duracao}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">{item.descricao}</p>
-              
-              {/* Player de Áudio */}
-              <audio controls className="w-full">
-                <source src={item.audio} type="audio/mpeg" />
-                Seu navegador não suporta áudio.
-              </audio>
+        {/* Lista de Meditações */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {meditacoes.length === 0 ? (
+            <div className="col-span-3 bg-white rounded-3xl shadow-lg p-8 text-center">
+              <p className="text-gray-600">Nenhuma meditação encontrada ainda.</p>
             </div>
-          ))}
+          ) : (
+            meditacoes.map((med) => (
+              <div
+                key={med.id}
+                className="bg-white rounded-3xl shadow-lg p-6 border border-purple-100 space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                      {med.duracao}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-purple-900">{med.titulo}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{med.descricao}</p>
+                </div>
+
+                {/* Player de Áudio /}
+                <audio controls className="w-full">
+                  <source src={med.audio_url} type="audio/mpeg" />
+                  Seu navegador não suporta áudio.
+                </audio>
+              </div>
+            ))
+          )}
         </div>
       </main>
     </div>
