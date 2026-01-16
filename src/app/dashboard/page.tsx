@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
+import Navigation from '@/components/custom/navigation';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -43,31 +45,17 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 font-sans">
-      {/* HEADER ESTILO LASY (Seta + Menu) */}
+      {/* HEADER COM MENU COMPLETO (IGUAL À PRIMEIRA FOTO) */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-md mx-auto flex items-center p-4 gap-4">
-          {/* Seta de Voltar */}
-          <button 
-            onClick={() => router.push('/dashboard')} 
-            className="text-purple-600 text-3xl font-bold hover:opacity-70 transition-all"
-          >
-            ←
-          </button>
-          
-          {/* Menu de Abas */}
-          <div className="flex gap-8 overflow-x-auto no-scrollbar py-1 flex-1">
-            <button onClick={() => router.push('/dashboard')} className="flex flex-col items-center text-purple-600 min-w-[60px]">
-              <span className="text-2xl">🏠</span>
-              <span className="text-[11px] font-black uppercase">Início</span>
+        <div className="max-w-md mx-auto p-4 space-y-4">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => router.push('/dashboard')} 
+              className="text-purple-600 text-3xl font-bold"
+            >
+              ←
             </button>
-            <button onClick={() => router.push('/meditacoes')} className="flex flex-col items-center text-gray-400 min-w-[60px]">
-              <span className="text-2xl">🧠</span>
-              <span className="text-[11px] font-bold uppercase">Mente</span>
-            </button>
-            <button onClick={() => router.push('/meditacoes')} className="flex flex-col items-center text-gray-400 min-w-[60px]">
-              <span className="text-2xl">🎧</span>
-              <span className="text-[11px] font-bold uppercase">Áudios</span>
-            </button>
+            <Navigation />
           </div>
         </div>
       </nav>
@@ -82,7 +70,6 @@ export default function DashboardPage() {
             O corpo que você deseja já é seu. Sinta a transformação agora.
           </p>
           
-          {/* BOTÃO DESCOBRIR MEU PERFIL - CORRIGIDO */}
           <button 
             onClick={() => router.push('/perfil')}
             className="w-full bg-green-500 text-white py-5 rounded-3xl font-black text-xl shadow-xl shadow-green-100 active:scale-95 transition-all"
