@@ -47,7 +47,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50 pb-24 font-sans">
       {/* HEADER COM MENU COMPLETO (IGUAL À PRIMEIRA FOTO) */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-md mx-auto p-4 space-y-4">
+        <div className="max-w-md mx-auto p-4">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.push('/dashboard')} 
