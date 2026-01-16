@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -94,4 +93,33 @@ export default function AuthPage() {
         </form>
 
         {message && (
-          <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-xl text-sm text-purple-800 text
+          <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-xl text-sm text-purple-800 text-center">
+            {message}
+          </div>
+        )}
+
+        <button
+          onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+          className="w-full text-purple-500 text-sm hover:text-purple-700 transition-all mt-4"
+        >
+          {mode === 'login' ? 'Não tem conta? Criar agora →' : '← Já tem conta? Entrar'}
+        </button>
+
+        {mode === 'signup' && (
+          <p className="mt-4 text-xs text-center text-gray-500 leading-relaxed">
+            ⚠️ Não recebeu o e-mail? <br />
+            Verifique sua caixa de <strong>Spam</strong> ou <strong>Promoções</strong>. <br />
+            O link de confirmação pode levar até 2 minutos para chegar.
+          </p>
+        )}
+
+        <button
+          onClick={() => router.push('/')}
+          className="w-full text-gray-400 text-xs mt-6 hover:text-gray-600 transition-all"
+        >
+          ← Voltar para o início
+        </button>
+      </div>
+    </div>
+  );
+}
