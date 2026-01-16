@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
@@ -18,26 +17,24 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg md:relative md:shadow-none md:border-none">
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-        {items.map(({ label, href, icon: Icon }) => {
-          const active = pathname === href;
-          return (
-            <button
-              key={href}
-              onClick={() => router.push(href)}
-              className={`flex flex-col items-center justify-center flex-1 min-w-[48px] ${
-                active ? 'text-purple-600' : 'text-gray-400'
-              }`}
-            >
-              <Icon className="w-5 h-5 mb-1" />
-              <span className={`text-[10px] font-semibold ${active ? 'font-black' : ''}`}>
-                {label}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </nav>
+    <div className="flex gap-6 overflow-x-auto no-scrollbar py-1 flex-1">
+      {items.map(({ label, href, icon: Icon }) => {
+        const active = pathname === href;
+        return (
+          <button
+            key={href}
+            onClick={() => router.push(href)}
+            className={`flex flex-col items-center justify-center min-w-[60px] transition-all ${
+              active ? 'text-purple-600 scale-110' : 'text-gray-400 hover:text-purple-300'
+            }`}
+          >
+            <Icon className="w-6 h-6 mb-1" />
+            <span className={`text-[10px] uppercase tracking-tighter ${active ? 'font-black' : 'font-bold'}`}>
+              {label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
