@@ -10,8 +10,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [nome, setNome] = useState('Criadora');
   const [fraseDoDia, setFraseDoDia] = useState('');
+  const [feedbackCheckin, setFeedbackCheckin] = useState('');
 
-  // LISTA DE FRASES ESTILO "DUOLINGO" PARA A CRIADORA
   const frases = [
     "Eiii! Já registrou suas emoções hoje? Seu eu futuro vai agradecer! 💜",
     "Como sua versão magra escolheria o almoço de hoje? 🥗",
@@ -25,13 +25,21 @@ export default function DashboardPage() {
     "Você é a arquiteta da sua realidade. Construa com amor! 🏗️💜"
   ];
 
+  const handleCheckin = (sentimento: string) => {
+    const respostas: Record<string, string> = {
+      'Leve': 'Perfeito! Esse é o estado que manifesta resultados rápidos. ✨',
+      'Neutra': 'Tudo bem. Apenas observe e continue assumindo sua nova versão. 🌱',
+      'Desconectada': 'Respire fundo. Ouça uma meditação agora para voltar ao centro. 🧘‍♀️',
+      'Confiante': 'Incrível! Você já é a mulher que deseja ser. Sinta isso! 🔥'
+    };
+    setFeedbackCheckin(respostas[sentimento]);
+    // Aqui no futuro podemos salvar isso no banco de dados
+  };
+
   useEffect(() => {
     const checkVip = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { 
-        router.replace('/auth'); 
-        return; 
-      }
+      if (!session) { router.replace('/auth'); return; }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -43,97 +51,85 @@ export default function DashboardPage() {
         router.replace('/checkout');
       } else {
         if (profile.full_name) setNome(profile.full_name);
-        
-        // Escolhe uma frase aleatória toda vez que carrega
-        const randomIndex = Math.floor(Math.random() * frases.length);
-        setFraseDoDia(frases[randomIndex]);
-        
+        setFraseDoDia(frases[Math.floor(Math.random() * frases.length)]);
         setLoading(false);
       }
     };
     checkVip();
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div></div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 font-sans">
-      {/* HEADER COM MENU NO TOPO */}
+    <div className="min-h-screen bg-gray-50 pb-32 font-sans">
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-md mx-auto p-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => router.push('/dashboard')} 
-              className="text-purple-600 text-3xl font-bold"
-            >
-              ←
-            </button>
-            <Navigation />
-          </div>
+        <div className="max-w-md mx-auto p-4 flex items-center gap-4">
+          <button onClick={() => router.push('/dashboard')} className="text-purple-600 text-3xl font-bold">←</button>
+          <Navigation />
         </div>
       </nav>
 
-      <main className="max-w-md mx-auto p-6 space-y-10">
+      <main className="max-w-md mx-auto p-6 space-y-8">
         {/* Boas-vindas */}
-        <div className="text-center space-y-4 pt-4">
-          <h2 className="text-3xl font-black text-gray-900 leading-tight">
-            Bem-vinda à sua nova realidade, <span className="text-green-500">{nome}</span>! 💚
-          </h2>
-          <p className="text-xl text-gray-600 font-medium leading-relaxed">
-            O corpo que você deseja já é seu. Sinta a transformação agora.
-          </p>
-          
-          <button 
-            onClick={() => router.push('/perfil')}
-            className="w-full bg-green-500 text-white py-5 rounded-3xl font-black text-xl shadow-xl shadow-green-100 active:scale-95 transition-all"
-          >
-            ✨ Descobrir Meu Perfil
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-black text-gray-900">Olá, <span className="text-purple-600">{nome}</span>! 💜</h2>
+          <p className="text-gray-500 text-sm">Sua nova identidade começa agora.</p>
+        </div>
+
+        {/* NOVO: Check-in de Identidade */}
+        <div className="bg-white p-6 rounded-[35px] shadow-xl border border-purple-50 space-y-4">
+          <h3 className="font-bold text-gray-800 text-center">Como você se sente HOJE?</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {['Leve', 'Neutra', 'Desconectada', 'Confiante'].map((s) => (
+              <button 
+                key={s}
+                onClick={() => handleCheckin(s)}
+                className="py-3 px-2 rounded-2xl border-2 border-purple-50 text-sm font-bold text-purple-700 hover:bg-purple-500 hover:text-white transition-all active:scale-95"
+              >
+                {s === 'Leve' && '🌱 '}
+                {s === 'Neutra' && '😐 '}
+                {s === 'Desconectada' && '😔 '}
+                {s === 'Confiante' && '🔥 '}
+                {s}
+              </button>
+            ))}
+          </div>
+          {feedbackCheckin && (
+            <div className="mt-4 p-3 bg-green-50 text-green-700 text-xs font-bold rounded-xl text-center animate-bounce">
+              {feedbackCheckin}
+            </div>
+          )}
+        </div>
+
+        {/* Botões de Ação Rápida */}
+        <div className="grid grid-cols-2 gap-4">
+          <button onClick={() => router.push('/meditacoes')} className="bg-purple-600 text-white p-6 rounded-[30px] font-bold shadow-lg flex flex-col items-center gap-2">
+            <span className="text-2xl">🎧</span> Meditar
+          </button>
+          <button onClick={() => router.push('/diario')} className="bg-pink-500 text-white p-6 rounded-[30px] font-bold shadow-lg flex flex-col items-center gap-2">
+            <span className="text-2xl">✍️</span> Diário
           </button>
         </div>
 
-        {/* Card de Conteúdo */}
-        <div className="bg-purple-50 p-8 rounded-[40px] border border-purple-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-5">
-            <span className="text-3xl">💜</span>
-            <h3 className="font-black text-2xl text-purple-900">Por que o SecaMente é diferente?</h3>
+        {/* Card: Carta do Futuro */}
+        <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-[35px] border border-yellow-100 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📜</span>
+            <h3 className="font-bold text-yellow-900">Carta da Criadora do Futuro</h3>
           </div>
-          <ul className="text-lg text-purple-800 space-y-5 font-semibold">
-            <li className="flex items-start gap-3">
-              <span className="text-purple-400">•</span> 
-              <span>Não é dieta, é mudança de identidade.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-purple-400">•</span> 
-              <span>Você assume o estado da mulher magra.</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Barra VIP Dourada */}
-        <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 p-6 rounded-[30px] text-center shadow-2xl border-b-4 border-yellow-700">
-          <p className="text-white font-black text-2xl flex items-center justify-center gap-2">
-            👑 VOCÊ É VIP! 👑
-          </p>
-          <p className="text-white text-sm font-bold opacity-90">Acesso total liberado!</p>
+          <p className="text-sm text-yellow-800 italic">"Obrigada por não desistir de mim hoje. Eu já sou real e estou te esperando..."</p>
+          <button onClick={() => router.push('/carta')} className="text-xs font-black text-yellow-700 underline">LER CARTA COMPLETA</button>
         </div>
       </main>
 
-      {/* BALÃOZINHO COM FRASE ALEATÓRIA */}
-      <div className="fixed bottom-10 right-6 max-w-[240px] z-50">
-        <div className="bg-white p-5 rounded-[30px] shadow-2xl border-2 border-purple-500 relative animate-bounce">
-          <p className="text-sm font-black text-purple-900 leading-tight">
-            "{fraseDoDia}"
-          </p>
-          <div className="absolute -bottom-2 right-8 w-5 h-5 bg-white border-r-2 border-b-2 border-purple-500 rotate-45"></div>
+      {/* Balãozinho Flutuante */}
+      <div className="fixed bottom-10 right-6 max-w-[200px] z-50">
+        <div className="bg-white p-4 rounded-[25px] shadow-2xl border-2 border-purple-500 relative">
+          <p className="text-[11px] font-black text-purple-900 leading-tight italic">"{fraseDoDia}"</p>
+          <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white border-r-2 border-b-2 border-purple-500 rotate-45"></div>
         </div>
-        <div className="flex justify-end mt-3 mr-2">
-           <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center text-4xl shadow-2xl border-4 border-white">🧘‍♀️</div>
+        <div className="flex justify-end mt-2 mr-1">
+           <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-2xl shadow-xl border-2 border-white">🧘‍♀️</div>
         </div>
       </div>
     </div>
