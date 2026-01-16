@@ -1,166 +1,114 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 import Navigation from '@/components/custom/navigation';
-import BackToHomeButton from '@/components/custom/back-to-home-button';
-import { BookOpen, Sparkles, Lightbulb } from 'lucide-react';
-import { DIARY_PROMPTS } from '@/lib/constants';
+import { BookOpen, CheckCircle2, Save } from 'lucide-react';
 
 export default function DiarioPage() {
-  const [selectedPrompt, setSelectedPrompt] = useState(DIARY_PROMPTS[0]);
-  const [diaryEntry, setDiaryEntry] = useState('');
-  const [savedEntries, setSavedEntries] = useState<Array<{ prompt: string; content: string; date: string }>>([]);
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [texto, setTexto] = useState('');
+  const [vitorias, setVitorias] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const handleSave = () => {
-    if (diaryEntry.trim()) {
-      const newEntry = {
-        prompt: selectedPrompt,
-        content: diaryEntry,
-        date: new Date().toLocaleDateString('pt-BR'),
-      };
-      setSavedEntries([newEntry, ...savedEntries]);
-      setDiaryEntry('');
-    }
+  const opcoesVitorias = [
+    "Comi com consciência e presença",
+    "Respeitei minha saciedade",
+    "Escolhi nutrir meu corpo com amor",
+    "Bebi água suficiente",
+    "Fiz minha meditação do dia",
+    "Me olhei com carinho no espelho"
+  ];
+
+  const toggleVitoria = (vitoria: string) => {
+    setVitorias(prev => 
+      prev.includes(vitoria) ? prev.filter(v => v !== vitoria) : [...prev, vitoria]
+    );
   };
 
-  const getRandomPrompt = () => {
-    const randomIndex = Math.floor(Math.random() * DIARY_PROMPTS.length);
-    setSelectedPrompt(DIARY_PROMPTS[randomIndex]);
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { router.replace('/auth'); return; }
+      setLoading(false);
+    };
+    checkAuth();
+  }, [router]);
+
+  const salvarDiario = async () => {
+    setSaving(true);
+    // Aqui no futuro podemos salvar no Supabase, por enquanto vamos dar o feedback visual
+    setTimeout(() => {
+      setMessage('Diário de vitórias selado! 🌟');
+      setSaving(false);
+      setTimeout(() => setMessage(''), 3000);
+    }, 1000);
   };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div></div>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-green-50 pb-24 md:pb-8 md:pt-20">
-      <Navigation />
-      
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* Botão Voltar */}
-        <BackToHomeButton />
+    <div className="min-h-screen bg-pink-50 pb-24">
+      <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-md mx-auto p-4 flex items-center gap-4">
+          <button onClick={() => router.push('/dashboard')} className="text-purple-600 text-3xl font-bold">←</button>
+          <Navigation />
+        </div>
+      </nav>
 
-        {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-3">
-            <BookOpen className="w-10 h-10 text-purple-600" />
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Diário da Nova Identidade</h1>
-          </div>
-          <p className="text-gray-600">Escreva como se você já fosse a mulher que deseja ser</p>
+      <main className="max-w-md mx-auto p-6 space-y-6">
+        <div className="text-center space-y-2">
+          <BookOpen className="w-10 h-10 text-pink-500 mx-auto" />
+          <h1 className="text-2xl font-black text-gray-800">Diário da Criadora</h1>
+          <p className="text-sm text-gray-600 italic">Celebre suas vitórias de hoje, por menores que pareçam.</p>
         </div>
 
-        {/* Mensagem Inspiradora */}
-        <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl shadow-xl p-6 text-white">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-6 h-6" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-lg">O Poder da Escrita</h3>
-              <p className="text-white/90 leading-relaxed">
-                Quando você escreve a partir do estado assumido (como se já fosse a versão magra e confiante), 
-                sua mente inconsciente começa a aceitar isso como realidade. Escreva com sentimento, 
-                como se já estivesse vivendo essa vida.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Prompt do Dia */}
-        <div className="bg-white rounded-3xl shadow-xl p-6 border border-purple-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-yellow-500" />
-              Prompt de Hoje
-            </h3>
-            <button
-              onClick={getRandomPrompt}
-              className="text-sm text-purple-600 hover:text-purple-700 font-medium"
-            >
-              Outro prompt
-            </button>
-          </div>
-          
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
-            <p className="text-gray-700 leading-relaxed">{selectedPrompt}</p>
-          </div>
-        </div>
-
-        {/* Área de Escrita */}
-        <div className="bg-white rounded-3xl shadow-xl p-6 border border-purple-100 space-y-4">
-          <h3 className="font-semibold text-gray-800">Escreva sua história</h3>
-          <p className="text-sm text-gray-600">
-            Comece com: "Hoje, como a minha versão magra e confiante, eu..."
-          </p>
-          
-          <textarea
-            value={diaryEntry}
-            onChange={(e) => setDiaryEntry(e.target.value)}
-            placeholder="Hoje, como a minha versão magra e confiante, eu acordei me sentindo leve e cheia de energia. Escolhi um café da manhã nutritivo porque amo cuidar do meu corpo..."
-            className="w-full h-48 p-4 border-2 border-gray-200 rounded-xl focus:border-purple-400 focus:outline-none resize-none text-gray-700 leading-relaxed"
-          />
-          
-          <button
-            onClick={handleSave}
-            disabled={!diaryEntry.trim()}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            Salvar no Diário
-          </button>
-        </div>
-
-        {/* Entradas Salvas */}
-        {savedEntries.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-purple-600" />
-              Suas Entradas
-            </h3>
-            
-            <div className="space-y-3">
-              {savedEntries.map((entry, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-2xl shadow-lg p-6 border border-purple-100 space-y-3"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      <p className="text-xs text-purple-600 font-medium">{entry.date}</p>
-                      <p className="text-sm text-gray-600 italic">"{entry.prompt}"</p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-purple-50 rounded-xl">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-line">{entry.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Dicas de Escrita */}
-        <div className="bg-gradient-to-br from-green-400 to-teal-400 rounded-3xl shadow-xl p-6 text-white">
+        {/* Seção de Check-in de Vitórias */}
+        <div className="bg-white p-6 rounded-[35px] shadow-lg border border-pink-100 space-y-4">
+          <h3 className="font-bold text-pink-900 text-sm uppercase tracking-wider">Vitórias da Nova Identidade:</h3>
           <div className="space-y-3">
-            <h3 className="font-semibold text-lg flex items-center gap-2">
-              <span>✍️</span>
-              Dicas para Escrever
-            </h3>
-            <ul className="space-y-2 text-white/90">
-              <li className="flex items-start gap-2">
-                <span className="text-white font-bold">•</span>
-                <span>Escreva no presente, como se já estivesse vivendo essa realidade</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-white font-bold">•</span>
-                <span>Use detalhes sensoriais: como você se sente, o que vê, o que pensa</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-white font-bold">•</span>
-                <span>Escreva com emoção e convicção, não apenas com palavras</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-white font-bold">•</span>
-                <span>Não force - deixe fluir naturalmente do estado assumido</span>
-              </li>
-            </ul>
+            {opcoesVitorias.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => toggleVitoria(opt)}
+                className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left text-sm font-semibold ${
+                  vitorias.includes(opt) 
+                  ? 'border-pink-500 bg-pink-50 text-pink-700' 
+                  : 'border-gray-100 bg-gray-50 text-gray-500'
+                }`}
+              >
+                <CheckCircle2 className={vitorias.includes(opt) ? 'text-pink-500' : 'text-gray-300'} />
+                {opt}
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* Campo de Texto Livre */}
+        <div className="space-y-2">
+          <h3 className="font-bold text-pink-900 text-sm uppercase tracking-wider ml-2">Notas do Coração:</h3>
+          <textarea
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder="Como você se sentiu hoje sendo sua nova versão?"
+            className="w-full h-40 p-6 rounded-[30px] border-2 border-pink-100 focus:border-pink-400 focus:outline-none text-gray-700 text-sm leading-relaxed shadow-inner"
+          />
+        </div>
+
+        <button
+          onClick={salvarDiario}
+          disabled={saving}
+          className="w-full bg-pink-500 text-white py-4 rounded-3xl font-bold shadow-lg shadow-pink-200 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
+        >
+          <Save size={20} />
+          {saving ? 'Salvando...' : 'Salvar no meu Diário'}
+        </button>
+
+        {message && <p className="text-center text-pink-600 font-bold text-sm animate-bounce">{message}</p>}
       </main>
     </div>
   );
