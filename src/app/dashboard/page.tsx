@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,6 +9,21 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [nome, setNome] = useState('Criadora');
+  const [fraseDoDia, setFraseDoDia] = useState('');
+
+  // LISTA DE FRASES ESTILO "DUOLINGO" PARA A CRIADORA
+  const frases = [
+    "Eiii! Já registrou suas emoções hoje? Seu eu futuro vai agradecer! 💜",
+    "Como sua versão magra escolheria o almoço de hoje? 🥗",
+    "Bebeu água, Criadora? Seu corpo agradece! 💧",
+    "Lembre-se: você não está de dieta, você mudou de identidade. 👑",
+    "Já ouviu sua meditação de hoje? A mente cria, o corpo obedece. 🎧",
+    "Sinta agora a leveza de ser quem você nasceu para ser. ✨",
+    "Cada escolha consciente é um 'sim' para a sua nova realidade. 💎",
+    "Não foque no peso, foque na mulher maravilhosa que você já é! 🧘‍♀️",
+    "O que você precisa sentir agora para estar em paz com a comida? 💝",
+    "Você é a arquiteta da sua realidade. Construa com amor! 🏗️💜"
+  ];
 
   useEffect(() => {
     const checkVip = async () => {
@@ -29,6 +43,11 @@ export default function DashboardPage() {
         router.replace('/checkout');
       } else {
         if (profile.full_name) setNome(profile.full_name);
+        
+        // Escolhe uma frase aleatória toda vez que carrega
+        const randomIndex = Math.floor(Math.random() * frases.length);
+        setFraseDoDia(frases[randomIndex]);
+        
         setLoading(false);
       }
     };
@@ -45,7 +64,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 font-sans">
-      {/* HEADER COM MENU COMPLETO (IGUAL À PRIMEIRA FOTO) */}
+      {/* HEADER COM MENU NO TOPO */}
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-md mx-auto p-4">
           <div className="flex items-center gap-4">
@@ -105,11 +124,11 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Lembrete Flutuante */}
+      {/* BALÃOZINHO COM FRASE ALEATÓRIA */}
       <div className="fixed bottom-10 right-6 max-w-[240px] z-50">
         <div className="bg-white p-5 rounded-[30px] shadow-2xl border-2 border-purple-500 relative animate-bounce">
           <p className="text-sm font-black text-purple-900 leading-tight">
-            "Eiii! Já registrou suas emoções hoje? Seu eu futuro vai agradecer! 💜"
+            "{fraseDoDia}"
           </p>
           <div className="absolute -bottom-2 right-8 w-5 h-5 bg-white border-r-2 border-b-2 border-purple-500 rotate-45"></div>
         </div>
