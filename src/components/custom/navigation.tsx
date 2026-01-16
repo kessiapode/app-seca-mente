@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
@@ -8,12 +9,12 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const items = [
-    { label: 'Início', href: '/dashboard', icon: Home },
-    { label: 'Mente', href: '/mente', icon: Brain },       // se não tiver /mente ainda, podemos apontar para /meditacoes
-    { label: 'Dieta', href: '/dieta', icon: Apple },
-    { label: 'Meditações', href: '/meditacoes', icon: Headphones },
-    { label: 'Emoções', href: '/emocoes', icon: Heart },
-    { label: 'Diário', href: '/diario', icon: BookOpen },
+    { label: 'Início',      href: '/dashboard',   icon: Home },
+    { label: 'Mente',       href: '/mente',       icon: Brain },
+    { label: 'Dieta',       href: '/dieta',       icon: Apple },
+    { label: 'Meditações',  href: '/meditacoes',  icon: Headphones },
+    { label: 'Emoções',     href: '/emocoes',     icon: Heart },
+    { label: 'Diário',      href: '/diario',      icon: BookOpen },
   ];
 
   return (
