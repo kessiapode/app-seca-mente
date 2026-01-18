@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-const REDIRECT_TO =  'https://app-seca-mente.vercel.app/reset-password';/ <-- ajuste aqui para o seu domínio (pode ser rota específica)
+const REDIRECT_TO = 'https://app-seca-mente.vercel.app/reset-password';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function AuthPage() {
     }
   };
 
-  // Envia link de recuperação — tenta métodos compatíveis com diferentes versões do client
+  // Envia link de recuperação
   async function handleSendPasswordReset() {
     if (!email) {
       setMessage('Por favor, digite seu e-mail antes de enviar o link de recuperação.');
@@ -55,20 +55,18 @@ export default function AuthPage() {
     setSendingReset(true);
     setMessage('');
     try {
-      // Tenta usar resetPasswordForEmail se disponível (algumas versões do client)
+      // Compatível com diferentes versões do client Supabase
       if ((supabase.auth as any).resetPasswordForEmail) {
         const resp = await (supabase.auth as any).resetPasswordForEmail(email, {
           redirectTo: REDIRECT_TO,
         });
         if (resp?.error) throw resp.error;
       } else if ((supabase.auth as any).api && (supabase.auth as any).api.resetPasswordForEmail) {
-        // fallback para versões antigas com supabase.auth.api.resetPasswordForEmail
         const resp = await (supabase.auth as any).api.resetPasswordForEmail(email, {
           redirectTo: REDIRECT_TO,
         });
         if (resp?.error) throw resp.error;
       } else {
-        // fallback: usar signInWithOtp enviando o email (algumas setups usam este fluxo)
         const { error } = await supabase.auth.signInWithOtp({
           email,
           options: { emailRedirectTo: REDIRECT_TO },
@@ -142,7 +140,6 @@ export default function AuthPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              // Não marcar required para signup/login — required mantém comportamento atual
               required
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 focus:outline-none transition-all"
               placeholder="••••••••"
