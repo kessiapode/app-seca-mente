@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
-const REDIRECT_TO = 'https://app-seca-mente.vercel.app'; // <-- ajuste aqui para o seu domínio (pode ser rota específica)
+const REDIRECT_TO =  'https://app-seca-mente.vercel.app/reset-password';/ <-- ajuste aqui para o seu domínio (pode ser rota específica)
 
 export default function AuthPage() {
   const router = useRouter();
