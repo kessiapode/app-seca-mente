@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+const REDIRECT_TO = 'https://app-seca-mente.vercel.app'; // <-- ajuste aqui para o seu domínio (pode ser rota específica)
+
 export default function AuthPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -11,6 +13,10 @@ export default function AuthPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  // novos estados para envio de links
+  const [sendingReset, setSendingReset] = useState(false);
+  const [sendingMagic, setSendingMagic] = useState(false);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +45,65 @@ export default function AuthPage() {
       setLoading(false);
     }
   };
+
+  // Envia link de recuperação — tenta métodos compatíveis com diferentes versões do client
+  async function handleSendPasswordReset() {
+    if (!email) {
+      setMessage('Por favor, digite seu e-mail antes de enviar o link de recuperação.');
+      return;
+    }
+    setSendingReset(true);
+    setMessage('');
+    try {
+      // Tenta usar resetPasswordForEmail se disponível (algumas versões do client)
+      if ((supabase.auth as any).resetPasswordForEmail) {
+        const resp = await (supabase.auth as any).resetPasswordForEmail(email, {
+          redirectTo: REDIRECT_TO,
+        });
+        if (resp?.error) throw resp.error;
+      } else if ((supabase.auth as any).api && (supabase.auth as any).api.resetPasswordForEmail) {
+        // fallback para versões antigas com supabase.auth.api.resetPasswordForEmail
+        const resp = await (supabase.auth as any).api.resetPasswordForEmail(email, {
+          redirectTo: REDIRECT_TO,
+        });
+        if (resp?.error) throw resp.error;
+      } else {
+        // fallback: usar signInWithOtp enviando o email (algumas setups usam este fluxo)
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: REDIRECT_TO },
+        });
+        if (error) throw error;
+      }
+      setMessage('Link de recuperação enviado! Verifique seu e-mail (spam/promoções).');
+    } catch (err: any) {
+      setMessage(err.message || 'Erro ao enviar o link de recuperação.');
+    } finally {
+      setSendingReset(false);
+    }
+  }
+
+  // Envia magic link (entrar sem senha)
+  async function handleSendMagicLink() {
+    if (!email) {
+      setMessage('Digite seu e-mail para receber o magic link.');
+      return;
+    }
+    setSendingMagic(true);
+    setMessage('');
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: REDIRECT_TO },
+      });
+      if (error) throw error;
+      setMessage('Magic link enviado! Abra o e-mail e clique para entrar sem senha.');
+    } catch (err: any) {
+      setMessage(err.message || 'Erro ao enviar magic link.');
+    } finally {
+      setSendingMagic(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-green-50 flex items-center justify-center p-4">
@@ -77,11 +142,35 @@ export default function AuthPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              // Não marcar required para signup/login — required mantém comportamento atual
               required
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-400 focus:outline-none transition-all"
               placeholder="••••••••"
             />
           </div>
+
+          {/* BLOCO ADICIONAL: Esqueci minha senha + Magic Link (apenas no modo login) */}
+          {mode === 'login' && (
+            <div className="mt-2 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleSendPasswordReset}
+                disabled={sendingReset}
+                className="text-sm text-purple-600 hover:underline w-fit"
+              >
+                {sendingReset ? 'Enviando link...' : 'Esqueci minha senha'}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendMagicLink}
+                disabled={sendingMagic}
+                className="text-sm text-purple-600 hover:underline w-fit"
+              >
+                {sendingMagic ? 'Enviando...' : 'Entrar com magic link (sem senha)'}
+              </button>
+            </div>
+          )}
 
           <button
             type="submit"
